@@ -14,6 +14,7 @@ let
     targetPkgs = pkgs: (with pkgs; [
       # ld-linux-x86-64-linux.so.2 and others
       glibc
+      gdb
 
       # dotnet
       curl
@@ -75,6 +76,7 @@ in
         set -euo pipefail
         PATH=${makeBinPath (with pkgs; [ coreutils findutils inotify-tools ])}
         bin_dir=~/.vscode-server/bin
+        interpreter=$(patchelf --print-interpreter /run/current-system/sw/bin/sh)
 
         # Fix any existing symlinks before we enter the inotify loop.
         if [[ -e $bin_dir ]]; then
@@ -85,6 +87,10 @@ in
           mkdir -p "$bin_dir"
         fi
 
+        for i in ~/.vscode-server/extensions/ms-vscode.*/bin/cpptools*; do
+          patchelf --set-interpreter "$interpreter" "$i"
+        done
+
         while IFS=: read -r bin_dir event; do
           # A new version of the VS Code Server is being created.
           if [[ $event == 'CREATE,ISDIR' ]]; then
@@ -93,6 +99,9 @@ in
             inotifywait -qq -e DELETE_SELF "$bin_dir/node"
             ln -sfT ${nodeBinToUse} "$bin_dir/node"
             ln -sfT ${pkgs.ripgrep}/bin/rg "$bin_dir/node_modules/@vscode/ripgrep/bin/rg"
+            for i in ~/.vscode-server/extensions/ms-vscode.*/bin/cpptools*; do
+        patchelf --set-interpreter "$interpreter" "$i"
+            done
           # The monitored directory is deleted, e.g. when "Uninstall VS Code Server from Host" has been run.
           elif [[ $event == DELETE_SELF ]]; then
             # See the comments above Restart in the service config.
