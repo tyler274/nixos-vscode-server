@@ -6,28 +6,28 @@ Experimental support for VS Code Server in NixOS. The NodeJS by default supplied
 
 ### Flake
 ```nix
-1 {
- 2   inputs = {
- 3     nixpkgs.url = "nixpkgs/nixos-unstable";
- 4     nixos-vscode-server.url ="github:tyler274/nixos-vscode-server/master";
- 5   };
- 6
- 7   outputs = inputs@{ self, nixpkgs, ... }: {
- 8     nixosConfigurations.Cassius = nixpkgs.lib.nixosSystem {
- 9       system = "x86_64-linux";
-10       modules = [
-11         ./configuration.nix
-12
-13         # add things here
-14         {
-15             imports = [ inputs.nixos-vscode-server.nixosModules.system ];
-16             services.vscode-server.enable = true;
-17         }
-18       ];
-19
-20     };
-21   };
-22 }
+{
+  inputs = {
+    nixpkgs.url = "nixpkgs/nixos-unstable";
+    nixos-vscode-server.url ="github:tyler274/nixos-vscode-server/master";
+  };
+
+  outputs = inputs@{ self, nixpkgs, ... }: {
+    nixosConfigurations.Cassius = nixpkgs.lib.nixosSystem {
+      system = "x86_64-linux";
+      modules = [
+        ./configuration.nix
+
+        # add things here
+        {
+            imports = [ inputs.nixos-vscode-server.nixosModules.system ];
+            services.vscode-server.enable = true;
+        }
+      ];
+
+    };
+  };
+}
 ```
 
 And then enable them for the relevant users:
